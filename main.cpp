@@ -9,11 +9,22 @@ int main(int argc, char * argv[]){
   Plateau board;
   board.loadPlateau(argv[1]);
   board.affichePlateau();
-  board.jeu();
+  /*vector<vector<uint>> plateau;
+  plateau = board.plateau;
+  move_t moves;
+  moves = up;
+  //printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);
+  board.play(moves);
+  //board.move_R();
+  printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);
+  //printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);
+  board.unplay(moves);
+  printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);*/
+  //board.jeu();
   //board.move_L();
   /*board.affichePlateau();
   printf("%d\n", board.can_move_U());*/
-  //board.DFS(6);
+  board.DFS(6);
   /*vector<vector<uint>> plateau;
   plateau = board.plateau;
   board.moves = up;

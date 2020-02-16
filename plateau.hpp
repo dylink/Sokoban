@@ -42,7 +42,6 @@ class Plateau {
 public:
   vector<vector<uint>> plateau;
   uint man_pos[2];
-  move_t moves;
 
   void loadPlateau(string file){
     this->plateau.clear();
@@ -351,12 +350,15 @@ public:
     if(direction==MOVE_U && can_move_U()){ move_U();}
     if(direction==MOVE_D && can_move_D()){ move_D();}
     if(direction==MOVE_L && can_move_L()){ move_L();}
-    if(direction==MOVE_R && can_move_R()){ move_R();}
+    if(direction==MOVE_R && can_move_R()){move_R();}
   }
 
-  void unplay(vector<vector<uint>> &plateau){
-    this->plateau.clear();
-    this->plateau = plateau;
+  void unplay(vector<vector<uint>> copiePlateau, move_t direction){
+    if(direction==MOVE_U){ move_D();}
+    if(direction==MOVE_D){ move_U();}
+    if(direction==MOVE_L){ move_R();}
+    if(direction==MOVE_R){ move_L();}
+    this->plateau = copiePlateau;
   }
 
   list<move_t> nextMoves() {
@@ -374,16 +376,28 @@ public:
       return;
     }
     list<move_t> moves = nextMoves();
+    int g = 1;
     vector<vector<uint>> copiePlateau = this->plateau;
     for(auto i : moves) {
-      printf("Profondeur == %d\n", profondeur);
-      cout << i << endl;
-      /*play(i);
+      displayMoves(moves);
+      printf("Branche == %d\nProfondeur == %d\n", g, profondeur);
+      //printf("%d && %d\n", man_pos[0], man_pos[1]);
       affichePlateau();
+      play(i);
       DFS(profondeur - 1);
-      unplay(copiePlateau);*/
+      //printf("%d && %d\n", man_pos[0], man_pos[1]);
+      unplay(copiePlateau, i);
+
+      g++;
     }
     return;
+  }
+
+  void displayMoves(list<move_t> moves){
+    for(auto i : moves){
+      cout << i << " ";
+    }
+    cout << endl;
   }
 
   void jeu(){
