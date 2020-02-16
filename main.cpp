@@ -9,10 +9,10 @@ int main(int argc, char * argv[]){
   Plateau board;
   board.loadPlateau(argv[1]);
   board.affichePlateau();
-  //board.jeu();
-  board.move_L();
-  board.affichePlateau();
-  printf("%d\n", board.can_move_L());
+  board.jeu();
+  //board.move_L();
+  /*board.affichePlateau();
+  printf("%d\n", board.can_move_U());*/
   //board.DFS(6);
   /*vector<vector<uint>> plateau;
   plateau = board.plateau;
