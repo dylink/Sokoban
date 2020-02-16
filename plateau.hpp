@@ -42,6 +42,7 @@ class Plateau {
 public:
   vector<vector<uint>> plateau;
   uint man_pos[2];
+  int crateNumber = 0;
 
   void loadPlateau(string file){
     this->plateau.clear();
@@ -57,9 +58,9 @@ public:
         case '\n': vect.push_back(EOL); this->plateau.push_back(vect); vect.clear(); break;
         case ' ': vect.push_back(FREE); break;
         case '#': vect.push_back(WALL); break;
-        case '$': vect.push_back(CRATE_ON_FREE); break;
+        case '$': vect.push_back(CRATE_ON_FREE); this->crateNumber++; break;
         case '.': vect.push_back(TARGET); break;
-        case '*': vect.push_back(CRATE_ON_TARGET); break;
+        case '*': vect.push_back(CRATE_ON_TARGET); this->crateNumber++; break;
         case 'a': vect.push_back(MAN_ON_TARGET); this->man_pos[0] = this->plateau.size(); this->man_pos[1] = vect.size()-1; break;
         case '@': vect.push_back(MAN_ON_FREE); this->man_pos[0] = this->plateau.size(); this->man_pos[1] = vect.size()-1; break;
       }
@@ -371,33 +372,64 @@ public:
     return possibilities;
   }
 
-  void displayArbre(vector<vector<int>> graphe){
+  void displayArbre(vector<move_t> graphe){
     for(uint i = 0; i<graphe.size(); i++){
-      cout << "[" << i << "]-->";
-      for(uint j = 0; j<graphe[i].size(); j++){
-        cout << "[" << graphe[i][j] << "]-->";
-      }
-      cout << ";\n";
+      cout << "[" << graphe[i] << "]-->";
     }
+    cout << "\b\b\b;  \n";
+  }
+
+  void heuristic(){
+    return;
+  }
+
+  bool blocked(){
+    if(this->plateau[this->man_pos[0]-1][this->man_pos[1]] == CRATE_ON_FREE){
+      if((this->plateau[this->man_pos[0]-2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]-1][this->man_pos[1]-1] == WALL) || (this->plateau[this->man_pos[0]-2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]+1][this->man_pos[1]+1] == WALL)){
+        return true;
+      }
+    }
+    if(this->plateau[this->man_pos[0]+1][this->man_pos[1]] == CRATE_ON_FREE){
+      if((this->plateau[this->man_pos[0]+2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]-1][this->man_pos[1]-1] == WALL) || (this->plateau[this->man_pos[0]+2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]+1][this->man_pos[1]+1] == WALL)){
+        return true;
+      }
+    }
+    return false;
   }
 
   void DFS(int profondeur){
     if (profondeur==0){
       return;
     }
-    vector<vector<int>> graphe;
     list<move_t> moves = nextMoves();
-    int g = 0;
+    static vector<move_t> graphe;
     vector<vector<uint>> copiePlateau = this->plateau;
     for(auto i : moves) {
-      affichePlateau();
+      graphe.push_back(i);
       play(i);
+      affichePlateau();
+      displayArbre(graphe);
       DFS(profondeur - 1);
       unplay(copiePlateau, i);
-
-      g++;
+      graphe.pop_back();
     }
     return;
+  }
+
+  bool axisHasTarget(int i, int j){
+    for(uint y = 0; y<this->plateau[i].size();y++){
+      if(this->plateau[i][y] == TARGET){
+        printf("%d && %d\n", i, y);
+        return true;
+      }
+    }
+    for(uint x = 0; x<this->plateau.size(); x++){
+      if(this->plateau[x][j] == TARGET){
+        printf("%d && %d", x, j);
+        return true;
+      }
+    }
+    return false;
   }
 
   void displayMoves(list<move_t> moves){
@@ -407,9 +439,22 @@ public:
     cout << endl;
   }
 
+  bool finJeu(){
+    int crateOnTarget = 0;
+    for(uint i = 0; i<this->plateau.size(); i++){
+      for(uint j = 0; j<this->plateau[i].size(); j++){
+        if(this->plateau[i][j] == CRATE_ON_TARGET){
+          crateOnTarget++;
+        }
+      }
+    }
+    if(crateOnTarget == this->crateNumber) return true;
+    return false;
+  }
+
   void jeu(){
     move_t move;
-    while(true){
+    while(!finJeu()){
       static char init;
       struct termios new_kbd_mode;
 
@@ -434,7 +479,11 @@ public:
       }
       system("clear");
       affichePlateau();
+      if(blocked()){
+        cout << "Bloqué!\n";
+      }
     }
+    exit(1);
   }
 
 

@@ -24,7 +24,8 @@ int main(int argc, char * argv[]){
   //board.move_L();
   /*board.affichePlateau();
   printf("%d\n", board.can_move_U());*/
-  board.DFS(6);
+  //board.DFS(8);
+  //cout << board.count << endl;
   /*vector<vector<uint>> plateau;
   plateau = board.plateau;
   board.moves = up;
