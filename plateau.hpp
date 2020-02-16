@@ -416,6 +416,32 @@ public:
     }
   }
 
+  int heuristique (){
+    for(uint i = 0; i<this->plateau.size(); i++){
+      for(uint j = 0; j<this->plateau[i].size(); j++){
+      /*CRATE_ON_FREE dans un coin */
+        if(this->plateau[i][j] == CRATE_ON_FREE){
+          if( (this->plateau[this->man_pos[0]-1][this->man_pos[1]]==(WALL||CRATE_ON_FREE) && this->plateau[this->man_pos[0]][this->man_pos[1]+1]==(WALL||CRATE_ON_FREE)) ||
+              (this->plateau[this->man_pos[0]][this->man_pos[1]+1]==(WALL||CRATE_ON_FREE) && this->plateau[this->man_pos[0]+1][this->man_pos[1]]==(WALL||CRATE_ON_FREE)) ||
+              (this->plateau[this->man_pos[0]+1][this->man_pos[1]]==(WALL||CRATE_ON_FREE) && this->plateau[this->man_pos[0]][this->man_pos[1]-1]==(WALL||CRATE_ON_FREE)) ||
+              (this->plateau[this->man_pos[0]][this->man_pos[1]-1]==(WALL||CRATE_ON_FREE) && this->plateau[this->man_pos[0]-1][this->man_pos[1]]==(WALL||CRATE_ON_FREE)) ){
+                return -10;
+          }
+        }
+      /*CRATE_ON_TARGET dans un coin */
+        if(this->plateau[i][j] == CRATE_ON_FREE){
+          if( (this->plateau[this->man_pos[0]-1][this->man_pos[1]]==(WALL||CRATE_ON_TARGET) && this->plateau[this->man_pos[0]][this->man_pos[1]+1]==(WALL||CRATE_ON_TARGET)) ||
+              (this->plateau[this->man_pos[0]][this->man_pos[1]+1]==(WALL||CRATE_ON_TARGET) && this->plateau[this->man_pos[0]+1][this->man_pos[1]]==(WALL||CRATE_ON_TARGET)) ||
+              (this->plateau[this->man_pos[0]+1][this->man_pos[1]]==(WALL||CRATE_ON_TARGET) && this->plateau[this->man_pos[0]][this->man_pos[1]-1]==(WALL||CRATE_ON_TARGET)) ||
+              (this->plateau[this->man_pos[0]][this->man_pos[1]-1]==(WALL||CRATE_ON_TARGET) && this->plateau[this->man_pos[0]-1][this->man_pos[1]]==(WALL||CRATE_ON_TARGET)) ){
+                return 10;
+          }
+        }
+      }
+    }
+  }
+
+
 
 
 
