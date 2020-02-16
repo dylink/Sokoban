@@ -88,7 +88,7 @@ public:
 
   bool can_move_U() {
     if(this->man_pos[0] <= 1) return false;
-    if(this->plateau[this->man_pos[0]-1][this->man_pos[1]]==FREE) return true;
+    if(this->plateau[this->man_pos[0]-1][this->man_pos[1]]==FREE || this->plateau[this->man_pos[0]-1][this->man_pos[1]]==TARGET) return true;
     if(this->man_pos[0] >= 1) {
       if(this->plateau[this->man_pos[0]-1][this->man_pos[1]]==CRATE_ON_FREE &&
          (this->plateau[this->man_pos[0]-2][this->man_pos[1]]==FREE || this->plateau[this->man_pos[0]-2][this->man_pos[1]]==TARGET)) return true;
@@ -154,7 +154,7 @@ public:
 
   bool can_move_D() {
     if(this->man_pos[0] >= this->plateau.size()-1) return false;
-    if(this->plateau[this->man_pos[0]+1][this->man_pos[1]]==FREE) return true;
+    if(this->plateau[this->man_pos[0]+1][this->man_pos[1]]==FREE || this->plateau[this->man_pos[0]+1][this->man_pos[1]]==TARGET) return true;
     if(this->man_pos[0] <= this->plateau.size()-2) {
       if(this->plateau[this->man_pos[0]+1][this->man_pos[1]]==CRATE_ON_FREE &&
          (this->plateau[this->man_pos[0]+2][this->man_pos[1]]==FREE || this->plateau[this->man_pos[0]+2][this->man_pos[1]]==TARGET)) return true;
@@ -219,7 +219,7 @@ public:
 
   bool can_move_L() {
     if(this->man_pos[1] <= 1) return false;
-    if(this->plateau[this->man_pos[0]][this->man_pos[1]-1]==FREE) return true;
+    if(this->plateau[this->man_pos[0]][this->man_pos[1]-1]==FREE || this->plateau[this->man_pos[0]][this->man_pos[1]-1]==TARGET) return true;
     if(this->man_pos[1] >= 1) {
       if(this->plateau[this->man_pos[0]][this->man_pos[1]-1]==CRATE_ON_FREE &&
          (this->plateau[this->man_pos[0]][this->man_pos[1]-2]==FREE || this->plateau[this->man_pos[0]][this->man_pos[1]-2]==TARGET)) return true;
@@ -284,10 +284,10 @@ public:
 
   bool can_move_R() {
     if(this->man_pos[1] >= this->plateau[this->man_pos[0]].size()-1) return false;
-    if(this->plateau[this->man_pos[0]][this->man_pos[1]+1]==FREE) return true;
+    if(this->plateau[this->man_pos[0]][this->man_pos[1]+1]==FREE || this->plateau[this->man_pos[0]][this->man_pos[1]+1]==TARGET) return true;
     if(this->man_pos[1] <= this->plateau[this->man_pos[0]].size()-1) {
       if(this->plateau[this->man_pos[0]][this->man_pos[1]+1]==CRATE_ON_FREE &&
-         (this->plateau[this->man_pos[0]][this->man_pos[1]-2]==FREE || this->plateau[this->man_pos[0]][this->man_pos[1]+2]==TARGET)) return true;
+         (this->plateau[this->man_pos[0]][this->man_pos[1]+2]==FREE || this->plateau[this->man_pos[0]][this->man_pos[1]+2]==TARGET)) return true;
       if(this->plateau[this->man_pos[0]][this->man_pos[1]+1]==CRATE_ON_TARGET &&
          (this->plateau[this->man_pos[0]][this->man_pos[1]+2]==FREE || this->plateau[this->man_pos[0]][this->man_pos[1]+2]==TARGET)) return true;
     }
