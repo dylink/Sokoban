@@ -32,7 +32,7 @@ using namespace std;
 #define MAN_ON_FREE 5
 #define MAN_ON_TARGET 6
 #define EOL 7
-enum move_t {up = MOVE_U, down = MOVE_D, l = MOVE_L, r = MOVE_R};
+enum move_t {up = MOVE_U, down = MOVE_D, l = MOVE_L, r = MOVE_R, none = -1};
 
 ///Création d'un type "plateau" de taille C*L
 typedef int plateau[L][C];
@@ -43,6 +43,8 @@ public:
   vector<vector<uint>> plateau;
   uint man_pos[2];
   int crateNumber = 0;
+  int count = 0;
+  bool found = false;
 
   void loadPlateau(string file){
     this->plateau.clear();
@@ -397,23 +399,72 @@ public:
     return false;
   }
 
-  void DFS(int profondeur){
-    if (profondeur==0){
+  void popMoveBack(list<move_t> &list, move_t last){
+    if(last == -1){
       return;
     }
+    move_t toRemove;
+    if(last==MOVE_U){ last = down;}
+    else if(last==MOVE_D){ last = up;}
+    else if(last==MOVE_L){ last = r;}
+    else if(last==MOVE_R){ last = l;}
+    for(auto i : list){
+      if(i == last){
+        toRemove = i;
+      }
+    }
+    //cout << "To remove " << toRemove << '\n';
+    list.remove(toRemove);
+  }
+
+  int DFS(int profondeur, move_t last){
     list<move_t> moves = nextMoves();
+    popMoveBack(moves, last);
     static vector<move_t> graphe;
     vector<vector<uint>> copiePlateau = this->plateau;
+    if (profondeur == 0){
+      return 0;
+    }
+    if(finJeu()){
+      cout << "Solution trouvée!!\n";
+      affichePlateau();
+      this->found = true;
+      displayArbre(graphe);
+      return 1000;
+    }
     for(auto i : moves) {
+      if(this->found) return 1000;
       graphe.push_back(i);
       play(i);
+      /*system("clear");
       affichePlateau();
-      displayArbre(graphe);
-      DFS(profondeur - 1);
+      displayArbre(graphe);*/
+      DFS(profondeur - 1, i);
       unplay(copiePlateau, i);
       graphe.pop_back();
+      this->count++;
     }
-    return;
+    return 0;
+  }
+
+  move_t bestMove(move_t jouer){
+    list<move_t> moves = nextMoves();
+    //popMoveBack(moves, jouer);
+    vector<vector<uint>> copiePlateau = this->plateau;
+    int max = 0;
+    move_t best;
+    for(auto i : moves){
+      displayMoves(moves);
+      play(i);
+      int score = DFS(11, i);
+      cout << score << " && " << i << endl;
+      unplay(copiePlateau, i);
+      if(max <= score){
+        max = score;
+        best = i;
+      }
+    }
+    return best;
   }
 
   bool axisHasTarget(int i, int j){
@@ -477,8 +528,10 @@ public:
         case 'q': move = l; play(move); break;
         case 'd': move = r; play(move); break;
       }
+      this->count++;
       system("clear");
       affichePlateau();
+      cout << this->count << endl;
       if(blocked()){
         cout << "Bloqué!\n";
       }

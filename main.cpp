@@ -24,7 +24,29 @@ int main(int argc, char * argv[]){
   //board.move_L();
   /*board.affichePlateau();
   printf("%d\n", board.can_move_U());*/
-  //board.DFS(8);
+  /*move_t t;
+  t = none;
+  board.DFS(12, t);
+  cout << board.count << "\n";
+  move_t move = none;
+  while(!board.finJeu()){
+    board.play(board.bestMove(move));
+    cout << board.bestMove(move) << endl;
+    move = board.bestMove(move);
+  }*/
+  move_t t = none;
+  cout << "Trouvé!\n";
+  printf("%d\n", board.bestMove(none));
+  board.play(board.bestMove(none));
+  printf("%d\n", board.bestMove(none));
+  board.play(board.bestMove(none));
+  printf("%d\n", board.bestMove(none));
+  board.play(board.bestMove(none));
+  printf("%d\n", board.bestMove(none));
+  board.play(board.bestMove(none));
+  printf("%d\n", board.bestMove(none));
+  board.play(board.bestMove(none));
+  printf("%d\n", board.bestMove(none));
   //cout << board.count << endl;
   /*vector<vector<uint>> plateau;
   plateau = board.plateau;
