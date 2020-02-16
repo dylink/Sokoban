@@ -371,21 +371,28 @@ public:
     return possibilities;
   }
 
+  void displayArbre(vector<vector<int>> graphe){
+    for(uint i = 0; i<graphe.size(); i++){
+      cout << "[" << i << "]-->";
+      for(uint j = 0; j<graphe[i].size(); j++){
+        cout << "[" << graphe[i][j] << "]-->";
+      }
+      cout << ";\n";
+    }
+  }
+
   void DFS(int profondeur){
     if (profondeur==0){
       return;
     }
+    vector<vector<int>> graphe;
     list<move_t> moves = nextMoves();
-    int g = 1;
+    int g = 0;
     vector<vector<uint>> copiePlateau = this->plateau;
     for(auto i : moves) {
-      displayMoves(moves);
-      printf("Branche == %d\nProfondeur == %d\n", g, profondeur);
-      //printf("%d && %d\n", man_pos[0], man_pos[1]);
       affichePlateau();
       play(i);
       DFS(profondeur - 1);
-      //printf("%d && %d\n", man_pos[0], man_pos[1]);
       unplay(copiePlateau, i);
 
       g++;
