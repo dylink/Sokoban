@@ -449,7 +449,7 @@ public:
 
   move_t bestMove(move_t jouer){
     list<move_t> moves = nextMoves();
-    //popMoveBack(moves, jouer);
+    popMoveBack(moves, jouer);
     vector<vector<uint>> copiePlateau = this->plateau;
     int max = 0;
     move_t best;
