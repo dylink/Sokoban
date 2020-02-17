@@ -416,7 +416,7 @@ public:
     }
   }
 
-  int blocked (){
+  bool blocked (){
     for(uint i = 0; i<this->plateau.size(); i++){
       for(uint j = 0; j<this->plateau[i].size(); j++){
       /*CRATE_ON_FREE dans un coin de mur */
@@ -428,11 +428,12 @@ public:
                 ( (this->plateau[this->man_pos[0]+1][this->man_pos[1]]==WALL)  && (this->plateau[this->man_pos[0]][this->man_pos[1]-1]==WALL) ) ||
 
                 ( (this->plateau[this->man_pos[0]+1][this->man_pos[1]]==WALL) && (this->plateau[this->man_pos[0]][this->man_pos[1]+1]==WALL)  ) ) {
-                return -10;
+                return true;
           }
         }
       }
     }
+    return false;
   }
 
 
