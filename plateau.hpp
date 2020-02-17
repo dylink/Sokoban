@@ -5,6 +5,7 @@
 #include <vector>
 #include <list>
 #include <termios.h>
+#include <set>
 
 static struct termios g_old_kbd_mode;
 
@@ -45,6 +46,7 @@ public:
   int crateNumber = 0;
   int count = 0;
   bool found = false;
+  set<size_t> parcours;
 
   void loadPlateau(string file){
     this->plateau.clear();
@@ -385,6 +387,13 @@ public:
     return;
   }
 
+  bool isIn(size_t vect){
+    for(auto i : this->parcours){
+      if(i == vect) return true;
+    }
+    return false;
+  }
+
   bool blocked(){
     if(this->plateau[this->man_pos[0]-1][this->man_pos[1]] == CRATE_ON_FREE){
       if((this->plateau[this->man_pos[0]-2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]-1][this->man_pos[1]-1] == WALL) || (this->plateau[this->man_pos[0]-2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]+1][this->man_pos[1]+1] == WALL)){
@@ -399,32 +408,25 @@ public:
     return false;
   }
 
-  void popMoveBack(list<move_t> &list, move_t last){
-    if(last == -1){
-      return;
-    }
-    move_t toRemove;
-    if(last==MOVE_U){ last = down;}
-    else if(last==MOVE_D){ last = up;}
-    else if(last==MOVE_L){ last = r;}
-    else if(last==MOVE_R){ last = l;}
-    for(auto i : list){
-      if(i == last){
-        toRemove = i;
+  size_t vecHash(vector<vector<uint>> & vec) const {
+    size_t seed = vec.size();
+    for(auto& i : vec) {
+      for(auto& j : i) {
+        seed ^= j + 0x9e3779b9 + (seed << 6) + (seed >> 2);
       }
     }
-    //cout << "To remove " << toRemove << '\n';
-    list.remove(toRemove);
+    return seed;
   }
 
   int DFS(int profondeur, move_t last){
     list<move_t> moves = nextMoves();
-    popMoveBack(moves, last);
     static vector<move_t> graphe;
     vector<vector<uint>> copiePlateau = this->plateau;
-    if (profondeur == 0){
+    size_t hash = vecHash(this->plateau);
+    this->parcours.insert(hash);
+    /*if (profondeur == 0){
       return 0;
-    }
+    }*/
     if(finJeu()){
       cout << "Solution trouvée!!\n";
       affichePlateau();
@@ -434,22 +436,28 @@ public:
     }
     for(auto i : moves) {
       if(this->found) return 1000;
-      graphe.push_back(i);
       play(i);
-      /*system("clear");
-      affichePlateau();
-      displayArbre(graphe);*/
-      DFS(profondeur - 1, i);
-      unplay(copiePlateau, i);
-      graphe.pop_back();
-      this->count++;
+      hash = vecHash(this->plateau);
+      if(isIn(hash)){
+        unplay(copiePlateau, i);
+      }
+      else{
+        graphe.push_back(i);
+        this->parcours.insert(hash);
+        //system("clear");
+        affichePlateau();
+        displayArbre(graphe);
+        DFS(profondeur - 1, i);
+        unplay(copiePlateau, i);
+        graphe.pop_back();
+        this->count++;
+      }
     }
     return 0;
   }
 
   move_t bestMove(move_t jouer){
     list<move_t> moves = nextMoves();
-    popMoveBack(moves, jouer);
     vector<vector<uint>> copiePlateau = this->plateau;
     int max = 0;
     move_t best;
