@@ -6,6 +6,7 @@
 #include <list>
 #include <termios.h>
 #include <set>
+#include <cmath>
 
 static struct termios g_old_kbd_mode;
 
@@ -394,20 +395,6 @@ public:
     return false;
   }
 
-  bool blocked(){
-    if(this->plateau[this->man_pos[0]-1][this->man_pos[1]] == CRATE_ON_FREE){
-      if((this->plateau[this->man_pos[0]-2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]-1][this->man_pos[1]-1] == WALL) || (this->plateau[this->man_pos[0]-2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]+1][this->man_pos[1]+1] == WALL)){
-        return true;
-      }
-    }
-    if(this->plateau[this->man_pos[0]+1][this->man_pos[1]] == CRATE_ON_FREE){
-      if((this->plateau[this->man_pos[0]+2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]-1][this->man_pos[1]-1] == WALL) || (this->plateau[this->man_pos[0]+2][this->man_pos[1]] == WALL && this->plateau[this->man_pos[0]+1][this->man_pos[1]+1] == WALL)){
-        return true;
-      }
-    }
-    return false;
-  }
-
   size_t vecHash(vector<vector<uint>> & vec) const {
     size_t seed = vec.size();
     for(auto& i : vec) {
@@ -418,26 +405,41 @@ public:
     return seed;
   }
 
-  int DFS(int profondeur, move_t last){
+  bool blocked (){
+    for(uint i = 0; i<this->plateau.size(); i++){
+      for(uint j = 0; j<this->plateau[i].size(); j++){
+        if(this->plateau[i][j] == CRATE_ON_FREE){
+          if(onCorner(i, j)){
+            return true;
+          }
+          if(toWall(i, j)){
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  int DFS(){
     list<move_t> moves = nextMoves();
     static vector<move_t> graphe;
     vector<vector<uint>> copiePlateau = this->plateau;
     size_t hash = vecHash(this->plateau);
     this->parcours.insert(hash);
-    /*if (profondeur == 0){
-      return 0;
-    }*/
     if(finJeu()){
       cout << "Solution trouvée!!\n";
       affichePlateau();
       this->found = true;
       displayArbre(graphe);
+      cout << graphe.size() << endl;
       return 1000;
     }
     for(auto i : moves) {
       if(this->found) return 1000;
       play(i);
       hash = vecHash(this->plateau);
+      if(blocked()){ this->parcours.insert(hash); unplay(copiePlateau, i); continue;}
       if(isIn(hash)){
         unplay(copiePlateau, i);
       }
@@ -446,8 +448,8 @@ public:
         this->parcours.insert(hash);
         //system("clear");
         affichePlateau();
-        displayArbre(graphe);
-        DFS(profondeur - 1, i);
+        //displayArbre(graphe);
+        DFS();
         unplay(copiePlateau, i);
         graphe.pop_back();
         this->count++;
@@ -464,7 +466,7 @@ public:
     for(auto i : moves){
       displayMoves(moves);
       play(i);
-      int score = DFS(11, i);
+      int score = DFS();
       cout << score << " && " << i << endl;
       unplay(copiePlateau, i);
       if(max <= score){
@@ -473,22 +475,6 @@ public:
       }
     }
     return best;
-  }
-
-  bool axisHasTarget(int i, int j){
-    for(uint y = 0; y<this->plateau[i].size();y++){
-      if(this->plateau[i][y] == TARGET){
-        printf("%d && %d\n", i, y);
-        return true;
-      }
-    }
-    for(uint x = 0; x<this->plateau.size(); x++){
-      if(this->plateau[x][j] == TARGET){
-        printf("%d && %d", x, j);
-        return true;
-      }
-    }
-    return false;
   }
 
   void displayMoves(list<move_t> moves){
@@ -509,6 +495,156 @@ public:
     }
     if(crateOnTarget == this->crateNumber) return true;
     return false;
+  }
+
+  /*bool cratesBlock(int i, int j){
+    bool block = false;
+    if(this->plateau[i+1][j] == CRATE_ON_FREE){
+
+    }
+    return block;
+  }*/
+
+  bool toWall(int i, int j){
+    for(uint i = 0; i<this->plateau.size();i++){
+      for(uint j = 0; j<this->plateau[i].size();j++){
+        if(this->plateau[i][j] == CRATE_ON_FREE){
+          if( (toUpDownWall(i, j).first == toUpDownWall(i, j).second) && (toUpDownWall(i, j).first == true)){
+            return true;
+          }
+          else if( (toLeftRightWall(i, j).first == toLeftRightWall(i, j).second) && (toLeftRightWall(i, j).first == true)){
+            return true;
+          }
+        }
+      }
+    }
+    return false;
+  }
+
+  bool onCorner(int i, int j){
+    if(this->plateau[i+1][j] == WALL){
+      if(this->plateau[i][j+1] == WALL || this->plateau[i][j-1] == WALL){
+        return true;
+      }
+    }
+    else if(this->plateau[i-1][j] == WALL){
+      if(this->plateau[i][j+1] == WALL || this->plateau[i][j-1] == WALL){
+        return true;
+      }
+    }
+    else if(this->plateau[i][j+1] == WALL){
+      if(this->plateau[i+1][j] == WALL || this->plateau[i-1][j] == WALL){
+        return true;
+      }
+    }
+    else if(this->plateau[i][j-1] == WALL){
+      if(this->plateau[i+1][j] == WALL || this->plateau[i-1][j] == WALL){
+        return true;
+      }
+    }
+    return false;
+  }
+
+  pair<bool, bool> toUpDownWall(int i, int j){
+    pair<bool, bool> value;
+    int dir1 = 0;
+      if(this->plateau[i+1][j] == WALL) {dir1 = 1;}
+      else if(this->plateau[i-1][j] == WALL){ dir1 = -1;}
+      else {
+        value.first = false;
+        value.second = false;
+        return value;
+      }
+      for(uint y = j; y<this->plateau[i].size()-1; y++){
+        if(this->plateau[i+dir1][y] != WALL){
+          value.first = false;
+          value.second = false;
+          return value;
+        }
+        if(this->plateau[i][y+1] == WALL){
+          value.first = true;
+          break;
+        }
+        else if(this->plateau[i][y+1] == TARGET){
+          value.first = false;
+          value.second = false;
+          return value;
+        }
+        else{
+          value.first = false;
+        }
+      }
+      for(uint y = j; y>0; y--){
+        if(this->plateau[i+dir1][y] != WALL){
+          value.first = false;
+          value.second = false;
+          return value;
+        }
+        if(this->plateau[i][y-1] == WALL){
+          value.second = true;
+          break;
+        }
+        else if(this->plateau[i][y-1] == TARGET){
+          value.first = false;
+          value.second = false;
+          return value;
+        }
+        else{
+          value.second = false;
+        }
+      }
+    return value;
+  }
+
+  pair<bool, bool> toLeftRightWall(int i, int j){
+    pair<bool, bool> value;
+    int dir1 = 0;
+      if(this->plateau[i][j+1] == WALL) {dir1 = 1;}
+      else if(this->plateau[i][j-1] == WALL){ dir1 = -1;}
+      else {
+        value.first = false;
+        value.second = false;
+        return value;
+      }
+      for(uint y = i; y<this->plateau.size()-1; y++){
+        if(this->plateau[y][j+dir1] != WALL){
+          value.first = false;
+          value.second = false;
+          return value;
+        }
+        if(this->plateau[y+1][j] == WALL){
+          value.first = true;
+          break;
+        }
+        else if(this->plateau[y+1][j] == TARGET){
+          value.first = false;
+          value.second = false;
+          return value;
+        }
+        else{
+          value.first = false;
+        }
+      }
+      for(uint y = i; y>0; y--){
+        if(this->plateau[y][j+dir1] != WALL){
+          value.first = false;
+          value.second = false;
+          return value;
+        }
+        if(this->plateau[y-1][j] == WALL){
+          value.second = true;
+          break;
+        }
+        else if(this->plateau[y-1][j] == TARGET){
+          value.first = false;
+          value.second = false;
+          return value;
+        }
+        else{
+          value.second = false;
+        }
+      }
+    return value;
   }
 
   void jeu(){

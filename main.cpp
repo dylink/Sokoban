@@ -9,6 +9,8 @@ int main(int argc, char * argv[]){
   Plateau board;
   board.loadPlateau(argv[1]);
   board.affichePlateau();
+  //board.toUpDownWall(1,2,-1);
+  //printf("%d\n", board.toWall(1,2));
   /*vector<vector<uint>> plateau;
   plateau = board.plateau;
   move_t moves;
@@ -31,7 +33,7 @@ int main(int argc, char * argv[]){
   //printf("%d\n", board.can_move_U());
   move_t t;
   t = none;
-  board.DFS(6, t);
+  board.DFS();
   cout << board.count << "\n";
   /*move_t move = none;
   while(!board.finJeu()){
