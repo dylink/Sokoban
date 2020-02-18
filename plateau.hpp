@@ -7,6 +7,8 @@
 #include <termios.h>
 #include <set>
 #include <cmath>
+#include <utility>
+#include <functional>
 
 static struct termios g_old_kbd_mode;
 
@@ -48,6 +50,7 @@ public:
   int count = 0;
   bool found = false;
   set<size_t> parcours;
+  set<pair<int, int>> chain;
 
   void loadPlateau(string file){
     this->plateau.clear();
@@ -384,13 +387,16 @@ public:
     cout << "\b\b\b;  \n";
   }
 
-  void heuristic(){
-    return;
-  }
-
   bool isIn(size_t vect){
     for(auto i : this->parcours){
       if(i == vect) return true;
+    }
+    return false;
+  }
+
+  bool isInSet(set<pair<int, int>> &list, pair<int, int> &a){
+    for(auto i : list){
+      if(i == a) return true;
     }
     return false;
   }
@@ -406,22 +412,32 @@ public:
   }
 
   bool blocked (){
-    for(uint i = 0; i<this->plateau.size(); i++){
-      for(uint j = 0; j<this->plateau[i].size(); j++){
-        if(this->plateau[i][j] == CRATE_ON_FREE){
-          if(onCorner(i, j)){
-            return true;
-          }
-          if(toWall(i, j)){
-            return true;
-          }
+    for(int i = -1; i<2; i+=2){
+      if(this->plateau[this->man_pos[0]+i][this->man_pos[1]] == CRATE_ON_FREE){
+        if(cratesBlock(this->man_pos[0]+i,this->man_pos[1])){
+          //cout << this->man_pos[0]+i << " && " << this->man_pos[1] << endl;
+          return true;
+        }
+        if(toWall(this->man_pos[0]+i, this->man_pos[1])){
+          //cout << this->man_pos[0]+i << " && " << this->man_pos[1] << endl;
+          return true;
+        }
+      }
+      if(this->plateau[this->man_pos[0]][this->man_pos[1]+i] == CRATE_ON_FREE){
+        if(cratesBlock(this->man_pos[0],this->man_pos[1]+i)){
+          //cout << this->man_pos[0] << " && " << this->man_pos[1]+1 << endl;
+          return true;
+        }
+        if(toWall(this->man_pos[0], this->man_pos[1]+i)){
+          //cout << this->man_pos[0] << " && " << this->man_pos[1]+1 << endl;
+          return true;
         }
       }
     }
     return false;
   }
 
-  int DFS(){
+  void DFS(){
     list<move_t> moves = nextMoves();
     static vector<move_t> graphe;
     vector<vector<uint>> copiePlateau = this->plateau;
@@ -433,48 +449,30 @@ public:
       this->found = true;
       displayArbre(graphe);
       cout << graphe.size() << endl;
-      return 1000;
+      return;
     }
     for(auto i : moves) {
-      if(this->found) return 1000;
+      if(this->found) return;
       play(i);
       hash = vecHash(this->plateau);
-      if(blocked()){ this->parcours.insert(hash); unplay(copiePlateau, i); continue;}
       if(isIn(hash)){
         unplay(copiePlateau, i);
+        continue;
       }
+      if(blocked()){ this->parcours.insert(hash); /*affichePlateau(); cout << hash << endl;*/ unplay(copiePlateau, i); continue;}
       else{
+        this->count++;
         graphe.push_back(i);
         this->parcours.insert(hash);
         //system("clear");
-        affichePlateau();
+        //affichePlateau();
         //displayArbre(graphe);
         DFS();
         unplay(copiePlateau, i);
         graphe.pop_back();
-        this->count++;
       }
     }
-    return 0;
-  }
-
-  move_t bestMove(move_t jouer){
-    list<move_t> moves = nextMoves();
-    vector<vector<uint>> copiePlateau = this->plateau;
-    int max = 0;
-    move_t best;
-    for(auto i : moves){
-      displayMoves(moves);
-      play(i);
-      int score = DFS();
-      cout << score << " && " << i << endl;
-      unplay(copiePlateau, i);
-      if(max <= score){
-        max = score;
-        best = i;
-      }
-    }
-    return best;
+    return;
   }
 
   void displayMoves(list<move_t> moves){
@@ -482,6 +480,13 @@ public:
       cout << i << " ";
     }
     cout << endl;
+  }
+
+  void displaySet(set<pair<int, int>> moves){
+    for(auto i : moves){
+      cout << "[" << i.first << ", " << i.second << "]-->";
+    }
+    cout << "\b\b\b;  \n";
   }
 
   bool finJeu(){
@@ -497,26 +502,84 @@ public:
     return false;
   }
 
-  /*bool cratesBlock(int i, int j){
-    bool block = false;
-    if(this->plateau[i+1][j] == CRATE_ON_FREE){
-
-    }
-    return block;
-  }*/
-
-  bool toWall(int i, int j){
-    for(uint i = 0; i<this->plateau.size();i++){
-      for(uint j = 0; j<this->plateau[i].size();j++){
-        if(this->plateau[i][j] == CRATE_ON_FREE){
-          if( (toUpDownWall(i, j).first == toUpDownWall(i, j).second) && (toUpDownWall(i, j).first == true)){
-            return true;
-          }
-          else if( (toLeftRightWall(i, j).first == toLeftRightWall(i, j).second) && (toLeftRightWall(i, j).first == true)){
-            return true;
+  bool cratesBlock(int i, int j){
+    bool block = true;
+    pair<int, int> a;
+    a.first = i;
+    a.second = j;
+    int man_pos[2];
+    man_pos[0] = this->man_pos[0];
+    man_pos[1] = this->man_pos[1];
+    for(int x = -1; x<2; x+=2){
+      if((this->plateau[i][j+x] == FREE || (this->plateau[i][j+x] == MAN_ON_FREE || this->plateau[i][j+x] == MAN_ON_TARGET)) && (this->plateau[i][j-x] != MAN_ON_FREE && this->plateau[i][j-x] != MAN_ON_TARGET)){
+        this->man_pos[0] = i; this->man_pos[1] = j+x;
+        if(x==1 && can_move_L()){
+          this->man_pos[0] = man_pos[0];
+          this->man_pos[1] = man_pos[1];
+          this->chain.erase(a);
+          return false;
+        }
+        else if(x==-1 && can_move_R()){
+          this->man_pos[0] = man_pos[0];
+          this->man_pos[1] = man_pos[1];
+          this->chain.erase(a);
+          return false;
+        }
+        this->man_pos[0] = man_pos[0];
+        this->man_pos[1] = man_pos[1];
+      }
+      if(this->plateau[i][j+x] == CRATE_ON_FREE || this->plateau[i][j+x] == CRATE_ON_TARGET) {
+        a.first = i;
+        a.second = j+x;
+        if(!isInSet(this->chain, a)){
+          this->chain.insert(a);
+          if(!cratesBlock(i, j+x)) {
+            this->chain.erase(a);
+            return false;
           }
         }
       }
+      if((this->plateau[i+x][j] == FREE || (this->plateau[i+x][j] == MAN_ON_FREE || this->plateau[i+x][j] == MAN_ON_TARGET)) && (this->plateau[i-x][j] != MAN_ON_FREE && this->plateau[i-x][j] != MAN_ON_TARGET)){
+        this->man_pos[0] = i+x; this->man_pos[1] = j;
+
+        if(x==1 && can_move_U()){
+          this->man_pos[0] = man_pos[0];
+          this->man_pos[1] = man_pos[1];
+          this->chain.erase(a);
+          return false;
+        }
+        if(x==-1 && can_move_D()){
+          this->man_pos[0] = man_pos[0];
+          this->man_pos[1] = man_pos[1];
+          this->chain.erase(a);
+          return false;
+        }
+        this->man_pos[0] = man_pos[0];
+        this->man_pos[1] = man_pos[1];
+      }
+      if(this->plateau[i+x][j] == CRATE_ON_FREE || this->plateau[i+x][j] == CRATE_ON_TARGET) {
+        a.first = i+x;
+        a.second = j;
+        if(!isInSet(this->chain, a)){
+          this->chain.insert(a);
+          if(!cratesBlock(i+x, j)) {
+            this->chain.erase(a);
+            return false;
+          }
+        }
+      }
+    }
+    //cout << i << " && " << j << endl;
+    return true;
+  }
+
+  bool toWall(int i, int j){
+    if( (toUpDownWall(i, j).first == toUpDownWall(i, j).second) && (toUpDownWall(i, j).first == true)){
+      return true;
+    }
+    else if( (toLeftRightWall(i, j).first == toLeftRightWall(i, j).second) && (toLeftRightWall(i, j).first == true)){
+
+      return true;
     }
     return false;
   }
@@ -547,16 +610,16 @@ public:
 
   pair<bool, bool> toUpDownWall(int i, int j){
     pair<bool, bool> value;
-    int dir1 = 0;
-      if(this->plateau[i+1][j] == WALL) {dir1 = 1;}
-      else if(this->plateau[i-1][j] == WALL){ dir1 = -1;}
+    int dir = 0;
+      if(this->plateau[i+1][j] == WALL) dir = 1;
+      else if(this->plateau[i-1][j] == WALL) dir = -1;
       else {
         value.first = false;
         value.second = false;
         return value;
       }
       for(uint y = j; y<this->plateau[i].size()-1; y++){
-        if(this->plateau[i+dir1][y] != WALL){
+        if(this->plateau[i+dir][y] != WALL){
           value.first = false;
           value.second = false;
           return value;
@@ -565,7 +628,7 @@ public:
           value.first = true;
           break;
         }
-        else if(this->plateau[i][y+1] == TARGET){
+        else if(this->plateau[i][y+1] == TARGET || this->plateau[i][y+1] == MAN_ON_TARGET){
           value.first = false;
           value.second = false;
           return value;
@@ -575,7 +638,7 @@ public:
         }
       }
       for(uint y = j; y>0; y--){
-        if(this->plateau[i+dir1][y] != WALL){
+        if(this->plateau[i+dir][y] != WALL){
           value.first = false;
           value.second = false;
           return value;
@@ -584,7 +647,7 @@ public:
           value.second = true;
           break;
         }
-        else if(this->plateau[i][y-1] == TARGET){
+        else if(this->plateau[i][y-1] == TARGET || this->plateau[i][y-1] == MAN_ON_TARGET){
           value.first = false;
           value.second = false;
           return value;
@@ -597,26 +660,28 @@ public:
   }
 
   pair<bool, bool> toLeftRightWall(int i, int j){
+    //cout << i << " && " << j << endl;
     pair<bool, bool> value;
-    int dir1 = 0;
-      if(this->plateau[i][j+1] == WALL) {dir1 = 1;}
-      else if(this->plateau[i][j-1] == WALL){ dir1 = -1;}
+    int dir = 0;
+      if(this->plateau[i][j+1] == WALL) dir = 1;
+      else if(this->plateau[i][j-1] == WALL) dir = -1;
       else {
         value.first = false;
         value.second = false;
         return value;
       }
       for(uint y = i; y<this->plateau.size()-1; y++){
-        if(this->plateau[y][j+dir1] != WALL){
+        if(this->plateau[y][j+dir] != WALL){
           value.first = false;
           value.second = false;
           return value;
         }
         if(this->plateau[y+1][j] == WALL){
           value.first = true;
+
           break;
         }
-        else if(this->plateau[y+1][j] == TARGET){
+        else if(this->plateau[y+1][j] == TARGET || this->plateau[i+1][j] == MAN_ON_TARGET){
           value.first = false;
           value.second = false;
           return value;
@@ -626,7 +691,7 @@ public:
         }
       }
       for(uint y = i; y>0; y--){
-        if(this->plateau[y][j+dir1] != WALL){
+        if(this->plateau[y][j+dir] != WALL){
           value.first = false;
           value.second = false;
           return value;
@@ -635,7 +700,7 @@ public:
           value.second = true;
           break;
         }
-        else if(this->plateau[y-1][j] == TARGET){
+        else if(this->plateau[y-1][j] == TARGET || this->plateau[y-1][j] == MAN_ON_TARGET){
           value.first = false;
           value.second = false;
           return value;
@@ -650,6 +715,9 @@ public:
   void jeu(){
     move_t move;
     while(!finJeu()){
+      for(auto i : nextMoves()){
+        cout << i << endl;
+      }
       static char init;
       struct termios new_kbd_mode;
 

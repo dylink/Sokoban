@@ -22,7 +22,14 @@ int main(int argc, char * argv[]){
   //printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);
   board.unplay(moves);
   printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);*/
+  /*for(int i = -1 ; i<2; i+=2){
+    cout << i << endl;
+  }*/
+  /*board.man_pos[0] = 4;
+  board.man_pos[1] = 6;
+  printf("%d\n", board.can_move_L());*/
   //board.jeu();
+
   //board.move_L();
   //board.affichePlateau();
   /*printf("%zx\n", board.vecHash(board.plateau));
@@ -31,10 +38,7 @@ int main(int argc, char * argv[]){
   board.move_L();
   printf("%zx\n", board.vecHash(board.plateau));*/
   //printf("%d\n", board.can_move_U());
-  move_t t;
-  t = none;
   board.DFS();
-  cout << board.count << "\n";
   /*move_t move = none;
   while(!board.finJeu()){
     board.play(board.bestMove(move));
