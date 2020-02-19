@@ -9,62 +9,7 @@ int main(int argc, char * argv[]){
   Plateau board;
   board.loadPlateau(argv[1]);
   board.affichePlateau();
-  //board.toUpDownWall(1,2,-1);
-  //printf("%d\n", board.toWall(1,2));
-  /*vector<vector<uint>> plateau;
-  plateau = board.plateau;
-  move_t moves;
-  moves = up;
-  //printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);
-  board.play(moves);
-  //board.move_R();
-  printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);
-  //printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);
-  board.unplay(moves);
-  printf("%d && %d\n", board.man_pos[0], board.man_pos[1]);*/
-  /*for(int i = -1 ; i<2; i+=2){
-    cout << i << endl;
-  }*/
-  /*board.man_pos[0] = 4;
-  board.man_pos[1] = 6;
-  printf("%d\n", board.can_move_L());*/
-  //board.jeu();
-
-  //board.move_L();
-  //board.affichePlateau();
-  /*printf("%zx\n", board.vecHash(board.plateau));
-  board.move_R();
-  printf("%zx\n", board.vecHash(board.plateau));
-  board.move_L();
-  printf("%zx\n", board.vecHash(board.plateau));*/
-  //printf("%d\n", board.can_move_U());
+  board.jeu();
   board.DFS();
-  /*move_t move = none;
-  while(!board.finJeu()){
-    board.play(board.bestMove(move));
-    cout << board.bestMove(move) << endl;
-    move = board.bestMove(move);
-  }*/
-  /*move_t t = none;
-  cout << "Trouvé!\n";
-  printf("%d\n", board.bestMove(none));
-  board.play(board.bestMove(none));
-  printf("%d\n", board.bestMove(none));
-  board.play(board.bestMove(none));
-  printf("%d\n", board.bestMove(none));
-  board.play(board.bestMove(none));
-  printf("%d\n", board.bestMove(none));
-  board.play(board.bestMove(none));
-  printf("%d\n", board.bestMove(none));
-  board.play(board.bestMove(none));
-  printf("%d\n", board.bestMove(none));*/
-  //cout << board.count << endl;
-  /*vector<vector<uint>> plateau;
-  plateau = board.plateau;
-  board.moves = up;
-  board.play(board.moves);
-  board.affichePlateau();
-  board.unplay(plateau);
-  board.affichePlateau();*/
   return 0;
 }
