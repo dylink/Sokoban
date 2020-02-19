@@ -9,7 +9,7 @@ int main(int argc, char * argv[]){
   Plateau board;
   board.loadPlateau(argv[1]);
   board.affichePlateau();
-  board.jeu();
+  //board.jeu();
   board.DFS();
   return 0;
 }

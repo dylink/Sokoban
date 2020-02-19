@@ -356,17 +356,17 @@ public:
   }
 
   void play(move_t direction){
-    if(direction==MOVE_U && can_move_U()){ move_U();}
-    if(direction==MOVE_D && can_move_D()){ move_D();}
-    if(direction==MOVE_L && can_move_L()){ move_L();}
-    if(direction==MOVE_R && can_move_R()){move_R();}
+    if(direction==MOVE_U && can_move_U()) move_U();
+    if(direction==MOVE_D && can_move_D()) move_D();
+    if(direction==MOVE_L && can_move_L()) move_L();
+    if(direction==MOVE_R && can_move_R()) move_R();
   }
 
   void unplay(vector<vector<uint>> copiePlateau, move_t direction){
-    if(direction==MOVE_U){ move_D();}
-    if(direction==MOVE_D){ move_U();}
-    if(direction==MOVE_L){ move_R();}
-    if(direction==MOVE_R){ move_L();}
+    if(direction==MOVE_U) move_D();
+    if(direction==MOVE_D) move_U();
+    if(direction==MOVE_L) move_R();
+    if(direction==MOVE_R) move_L();
     this->plateau = copiePlateau;
   }
 
@@ -381,129 +381,38 @@ public:
   }
 
   void displayArbre(vector<move_t> graphe){
-    for(uint i = 0; i<graphe.size(); i++){
-      cout << "[" << graphe[i] << "]-->";
-    }
+    for(uint i = 0; i<graphe.size(); i++) cout << "[" << graphe[i] << "]-->";
+    cout << "\b\b\b;  \n";
+  }
+
+  void displayMoves(list<move_t> moves){
+    for(auto i : moves) cout << i << " ";
+    cout << endl;
+  }
+
+  void displaySet(set<pair<int, int>> moves){
+    for(auto i : moves) cout << "[" << i.first << ", " << i.second << "]-->";
     cout << "\b\b\b;  \n";
   }
 
   bool isIn(size_t vect){
-    for(auto i : this->parcours){
-      if(i == vect) return true;
-    }
+    for(auto i : this->parcours) if(i == vect) return true;
     return false;
   }
 
   bool isInSet(set<pair<int, int>> &list, pair<int, int> &a){
-    for(auto i : list){
-      if(i == a) return true;
-    }
+    for(auto i : list) if(i == a) return true;
     return false;
   }
 
   size_t vecHash(vector<vector<uint>> & vec) const {
     size_t seed = vec.size();
-    for(auto& i : vec) {
-      for(auto& j : i) {
-        seed ^= j + 0x9e3779b9 + (seed << 6) + (seed >> 2);
-      }
-    }
+    for(auto& i : vec)
+      for(auto& j : i) seed ^= j + 0x9e3779b9 + (seed << 6) + (seed >> 2);
     return seed;
   }
 
-  bool blocked (){
-    for(int i = -1; i<2; i+=2){
-      if(this->plateau[this->man_pos[0]+i][this->man_pos[1]] == CRATE_ON_FREE){
-        if(cratesBlock(this->man_pos[0]+i,this->man_pos[1])){
-          //cout << this->man_pos[0]+i << " && " << this->man_pos[1] << endl;
-          return true;
-        }
-        if(toWall(this->man_pos[0]+i, this->man_pos[1])){
-          //cout << this->man_pos[0]+i << " && " << this->man_pos[1] << endl;
-          return true;
-        }
-      }
-      if(this->plateau[this->man_pos[0]][this->man_pos[1]+i] == CRATE_ON_FREE){
-        if(cratesBlock(this->man_pos[0],this->man_pos[1]+i)){
-          //cout << this->man_pos[0] << " && " << this->man_pos[1]+1 << endl;
-          return true;
-        }
-        if(toWall(this->man_pos[0], this->man_pos[1]+i)){
-          //cout << this->man_pos[0] << " && " << this->man_pos[1]+1 << endl;
-          return true;
-        }
-      }
-    }
-    return false;
-  }
-
-  void DFS(){
-    list<move_t> moves = nextMoves();
-    static vector<move_t> graphe;
-    vector<vector<uint>> copiePlateau = this->plateau;
-    size_t hash = vecHash(this->plateau);
-    this->parcours.insert(hash);
-    if(finJeu()){
-      cout << "Solution trouvée!!\n";
-      affichePlateau();
-      this->found = true;
-      displayArbre(graphe);
-      cout << graphe.size() << endl;
-      return;
-    }
-    for(auto i : moves) {
-      if(this->found) return;
-      play(i);
-      hash = vecHash(this->plateau);
-      if(isIn(hash)){
-        unplay(copiePlateau, i);
-        continue;
-      }
-      if(blocked()){ this->parcours.insert(hash); /*affichePlateau(); cout << hash << endl;*/ unplay(copiePlateau, i); continue;}
-      else{
-        this->count++;
-        graphe.push_back(i);
-        this->parcours.insert(hash);
-        //system("clear");
-        //affichePlateau();
-        //displayArbre(graphe);
-        DFS();
-        unplay(copiePlateau, i);
-        graphe.pop_back();
-      }
-    }
-    return;
-  }
-
-  void displayMoves(list<move_t> moves){
-    for(auto i : moves){
-      cout << i << " ";
-    }
-    cout << endl;
-  }
-
-  void displaySet(set<pair<int, int>> moves){
-    for(auto i : moves){
-      cout << "[" << i.first << ", " << i.second << "]-->";
-    }
-    cout << "\b\b\b;  \n";
-  }
-
-  bool finJeu(){
-    int crateOnTarget = 0;
-    for(uint i = 0; i<this->plateau.size(); i++){
-      for(uint j = 0; j<this->plateau[i].size(); j++){
-        if(this->plateau[i][j] == CRATE_ON_TARGET){
-          crateOnTarget++;
-        }
-      }
-    }
-    if(crateOnTarget == this->crateNumber) return true;
-    return false;
-  }
-
   bool cratesBlock(int i, int j){
-    bool block = true;
     pair<int, int> a;
     a.first = i;
     a.second = j;
@@ -569,155 +478,116 @@ public:
         }
       }
     }
-    //cout << i << " && " << j << endl;
     return true;
   }
 
-  bool toWall(int i, int j){
-    if( (toUpDownWall(i, j).first == toUpDownWall(i, j).second) && (toUpDownWall(i, j).first == true)){
-      return true;
-    }
-    else if( (toLeftRightWall(i, j).first == toLeftRightWall(i, j).second) && (toLeftRightWall(i, j).first == true)){
-
-      return true;
+  bool wallCheck(int i, int j){
+    int walls1 = 0, forCount = 0, val;
+    for(int x = -1; ; x=-x){
+      if(forCount == 3) return false;
+      forCount++;
+      if(this->plateau[i][j+x] == WALL){
+        val = x;
+        if(walls1 == 1) x=-x;
+        for(uint h = i; ; h+=x){
+          if(h == this->plateau.size()-1 || h == 0) break;
+          if(this->plateau[h][j+val] != WALL) return false;
+          if(this->plateau[h+val][j] == TARGET || this->plateau[h+val][j] == MAN_ON_TARGET) return false;
+          if(this->plateau[h+x][j] == WALL){
+            walls1++;
+            break;
+          }
+        }
+        if(walls1 == 1) x=-x;
+        if(walls1 == 2) return true;
+      }
+      if(this->plateau[i+x][j] == WALL){
+        val = x;
+        if(walls1 == 1) x=-x;
+        for(uint h = j; ; h+=x){
+          if(h == this->plateau[i].size()-1 || h == 0) break;
+          if(this->plateau[i+val][h] != WALL) return false;
+          if(this->plateau[i][h+val] == TARGET || this->plateau[i][h+val] == MAN_ON_TARGET) return false;
+          if(this->plateau[i][h+x] == WALL){
+            walls1++;
+            break;
+          }
+        }
+        if(walls1 == 1) x=-x;
+        if(walls1 == 2) return true;
+      }
     }
     return false;
   }
 
-  bool onCorner(int i, int j){
-    if(this->plateau[i+1][j] == WALL){
-      if(this->plateau[i][j+1] == WALL || this->plateau[i][j-1] == WALL){
-        return true;
+  bool blocked (){
+    for(int i = -1; i<2; i+=2){
+      if(this->plateau[this->man_pos[0]+i][this->man_pos[1]] == CRATE_ON_FREE){
+        if(cratesBlock(this->man_pos[0]+i,this->man_pos[1])) return true;
+        if(wallCheck(this->man_pos[0]+i, this->man_pos[1])) return true;
       }
-    }
-    else if(this->plateau[i-1][j] == WALL){
-      if(this->plateau[i][j+1] == WALL || this->plateau[i][j-1] == WALL){
-        return true;
-      }
-    }
-    else if(this->plateau[i][j+1] == WALL){
-      if(this->plateau[i+1][j] == WALL || this->plateau[i-1][j] == WALL){
-        return true;
-      }
-    }
-    else if(this->plateau[i][j-1] == WALL){
-      if(this->plateau[i+1][j] == WALL || this->plateau[i-1][j] == WALL){
-        return true;
+      if(this->plateau[this->man_pos[0]][this->man_pos[1]+i] == CRATE_ON_FREE){
+        if(cratesBlock(this->man_pos[0],this->man_pos[1]+i)) return true;
+        if(wallCheck(this->man_pos[0], this->man_pos[1]+i)) return true;
       }
     }
     return false;
   }
 
-  pair<bool, bool> toUpDownWall(int i, int j){
-    pair<bool, bool> value;
-    int dir = 0;
-      if(this->plateau[i+1][j] == WALL) dir = 1;
-      else if(this->plateau[i-1][j] == WALL) dir = -1;
-      else {
-        value.first = false;
-        value.second = false;
-        return value;
+  void DFS(){
+    list<move_t> moves = nextMoves();
+    static vector<move_t> graphe;
+    vector<vector<uint>> copiePlateau = this->plateau;
+    size_t hash = vecHash(this->plateau);
+    this->parcours.insert(hash);
+    if(finJeu()){
+      cout << "Solution trouvée!!\n";
+      affichePlateau();
+      this->found = true;
+      displayArbre(graphe);
+      cout << graphe.size() << endl;
+      return;
+    }
+    for(auto i : moves) {
+      if(this->found) return;
+      play(i);
+      hash = vecHash(this->plateau);
+      if(isIn(hash)){
+        unplay(copiePlateau, i);
+        continue;
       }
-      for(uint y = j; y<this->plateau[i].size()-1; y++){
-        if(this->plateau[i+dir][y] != WALL){
-          value.first = false;
-          value.second = false;
-          return value;
-        }
-        if(this->plateau[i][y+1] == WALL){
-          value.first = true;
-          break;
-        }
-        else if(this->plateau[i][y+1] == TARGET || this->plateau[i][y+1] == MAN_ON_TARGET){
-          value.first = false;
-          value.second = false;
-          return value;
-        }
-        else{
-          value.first = false;
-        }
+      if(blocked()){ this->parcours.insert(hash); unplay(copiePlateau, i); continue;}
+      else{
+        this->count++;
+        graphe.push_back(i);
+        this->parcours.insert(hash);
+        //system("clear");
+        //affichePlateau();
+        //displayArbre(graphe);
+        DFS();
+        unplay(copiePlateau, i);
+        graphe.pop_back();
       }
-      for(uint y = j; y>0; y--){
-        if(this->plateau[i+dir][y] != WALL){
-          value.first = false;
-          value.second = false;
-          return value;
-        }
-        if(this->plateau[i][y-1] == WALL){
-          value.second = true;
-          break;
-        }
-        else if(this->plateau[i][y-1] == TARGET || this->plateau[i][y-1] == MAN_ON_TARGET){
-          value.first = false;
-          value.second = false;
-          return value;
-        }
-        else{
-          value.second = false;
-        }
-      }
-    return value;
+    }
+    return;
   }
 
-  pair<bool, bool> toLeftRightWall(int i, int j){
-    //cout << i << " && " << j << endl;
-    pair<bool, bool> value;
-    int dir = 0;
-      if(this->plateau[i][j+1] == WALL) dir = 1;
-      else if(this->plateau[i][j-1] == WALL) dir = -1;
-      else {
-        value.first = false;
-        value.second = false;
-        return value;
-      }
-      for(uint y = i; y<this->plateau.size()-1; y++){
-        if(this->plateau[y][j+dir] != WALL){
-          value.first = false;
-          value.second = false;
-          return value;
-        }
-        if(this->plateau[y+1][j] == WALL){
-          value.first = true;
+  bool finJeu(){
+    int crateOnTarget = 0;
+    for(uint i = 0; i<this->plateau.size(); i++)
+      for(uint j = 0; j<this->plateau[i].size(); j++)
+        if(this->plateau[i][j] == CRATE_ON_TARGET) crateOnTarget++;
 
-          break;
-        }
-        else if(this->plateau[y+1][j] == TARGET || this->plateau[i+1][j] == MAN_ON_TARGET){
-          value.first = false;
-          value.second = false;
-          return value;
-        }
-        else{
-          value.first = false;
-        }
-      }
-      for(uint y = i; y>0; y--){
-        if(this->plateau[y][j+dir] != WALL){
-          value.first = false;
-          value.second = false;
-          return value;
-        }
-        if(this->plateau[y-1][j] == WALL){
-          value.second = true;
-          break;
-        }
-        else if(this->plateau[y-1][j] == TARGET || this->plateau[y-1][j] == MAN_ON_TARGET){
-          value.first = false;
-          value.second = false;
-          return value;
-        }
-        else{
-          value.second = false;
-        }
-      }
-    return value;
+    if(crateOnTarget == this->crateNumber) return true;
+    return false;
   }
 
   void jeu(){
     move_t move;
     while(!finJeu()){
-      for(auto i : nextMoves()){
+      /*for(auto i : nextMoves()){
         cout << i << endl;
-      }
+      }*/
       static char init;
       struct termios new_kbd_mode;
 
@@ -743,15 +613,10 @@ public:
       this->count++;
       system("clear");
       affichePlateau();
-      cout << this->count << endl;
-      if(blocked()){
-        cout << "Bloqué!\n";
-      }
+      cout << this->count << endl << endl;;
+      if(blocked()) cout << "Bloqué!\n";
     }
     exit(1);
   }
-
-
-
 
 };
