@@ -10,6 +10,7 @@ int main(int argc, char * argv[]){
   board.loadPlateau(argv[1]);
   board.affichePlateau();
   //board.jeu();
-  board.DFS();
+  //board.DFS();
+  //board.BFS();
   return 0;
 }

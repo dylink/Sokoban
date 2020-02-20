@@ -572,6 +572,62 @@ public:
     return;
   }
 
+  void BFS(int max_depth){
+    list<move_t> moves = nextMoves();
+
+  }
+
+//  void BFS(vector<move_t> etats_now, int max_depth){
+  void BFS(vector<move_t> now, int max_depth){
+    vector<vector<uint>> copiePlateau = this->plateau;
+    vector<vector<vector<uint>>> etats = this->plateau;
+    list<move_t> moves = nextMoves();
+    size_t hash = vecHash(this->plateau);
+    for( auto i : moves){
+      play(i);
+
+      if(isIn(hash)){
+        unplay(copiePlateau, i);
+        continue;
+      }
+      if(blocked()){ this->parcours.insert(hash); unplay(copiePlateau, i); continue;}
+      else{
+        this->parcours.insert(hash);
+        etats.push_back(this->plateau);
+        unplay(copiePlateau,i);
+      }
+
+    }
+
+    for( auto j : etats){
+      if(finJeu()){
+        cout << "Solution trouvée!!\n";
+        affichePlateau();
+        this->found = true;
+        return;
+      }
+      if(d==0){
+        cout << "NOT FIND!\n";
+        return;
+      }
+    }
+
+    BFS(etats, max_depth--);
+
+  }
+
+  /*
+  void IDS(p, int depth){
+    solution_size=0;
+    best_s = p;
+    for (int i=1; i<=depth; i++){
+      h = NULL,
+
+    }
+  }
+  */
+
+
   bool finJeu(){
     int crateOnTarget = 0;
     for(uint i = 0; i<this->plateau.size(); i++)
