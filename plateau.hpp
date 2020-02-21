@@ -18,11 +18,6 @@ static void old_attr(void){
 
 using namespace std;
 
-///Nombre de lignes
-#define L 100
-///Nombre de colonnes
-#define C 100
-
 #define MOVE_U 0
 #define MOVE_D 1
 #define MOVE_L 2
@@ -37,9 +32,7 @@ using namespace std;
 #define MAN_ON_TARGET 6
 #define EOL 7
 enum move_t {up = MOVE_U, down = MOVE_D, l = MOVE_L, r = MOVE_R, none = -1};
-
-///Création d'un type "plateau" de taille C*L
-typedef int plateau[L][C];
+int profondeur_max = 200;
 
 class Plateau {
 
@@ -374,8 +367,8 @@ public:
     move_t moves;
     list <move_t> possibilities;
     if(can_move_U()){ moves = up; possibilities.push_back(moves);}
-    if(can_move_L()){ moves = l; possibilities.push_back(moves);}
     if(can_move_R()){ moves = r; possibilities.push_back(moves);}
+    if(can_move_L()){ moves = l; possibilities.push_back(moves);}
     if(can_move_D()){ moves = down; possibilities.push_back(moves);}
     return possibilities;
   }
@@ -534,12 +527,10 @@ public:
     return false;
   }
 
-  void DFS(){
-    list<move_t> moves = nextMoves();
+  void DFS(int profondeur){
+
     static vector<move_t> graphe;
-    vector<vector<uint>> copiePlateau = this->plateau;
-    size_t hash = vecHash(this->plateau);
-    this->parcours.insert(hash);
+    if(profondeur == profondeur_max) return;
     if(finJeu()){
       cout << "Solution trouvée!!\n";
       affichePlateau();
@@ -548,6 +539,12 @@ public:
       cout << graphe.size() << endl;
       return;
     }
+
+    list<move_t> moves = nextMoves();
+    vector<vector<uint>> copiePlateau = this->plateau;
+    size_t hash = vecHash(this->plateau);
+    this->parcours.insert(hash);
+
     for(auto i : moves) {
       if(this->found) return;
       play(i);
@@ -564,12 +561,21 @@ public:
         //system("clear");
         //affichePlateau();
         //displayArbre(graphe);
-        DFS();
+        DFS(profondeur+1);
         unplay(copiePlateau, i);
         graphe.pop_back();
       }
     }
     return;
+  }
+
+  void IDS(){
+    for(int i = 1; i<260; i++){
+      this->parcours.clear();
+      profondeur_max = i;
+      DFS(0);
+      if(this->found) break;
+    }
   }
 
   bool finJeu(){
